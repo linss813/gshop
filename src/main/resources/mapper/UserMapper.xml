@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.linss.gshop.mapper.UserMapper">
+
+    <resultMap id="User" type="user">
+        <id property="uid" column="uid"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="avatar" column="avatar"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="address" column="address"/>
+        <result property="role" column="role"/>
+        <result property="created" column="created"/>
+        <result property="last" column="last"/>
+    </resultMap>
+
+    <select id="getAllUser" resultType="com.linss.gshop.entity.User" parameterType="com.linss.gshop.entity.User">
+        select * from user
+    </select>
+
+    <select id="getUserById" resultType="com.linss.gshop.entity.User" parameterType="int">
+        select * from user where uid = #{uid}
+    </select>
+
+    <insert id="insertUser" parameterType="com.linss.gshop.entity.User">
+        INSERT INTO user (username, password, avatar, phone, email, address, created)
+        VALUES (#{username}, #{password}, #{avatar}, #{phone}, #{email}, #{address}, NOW());
+    </insert>
+
+    <update id="updateUser" parameterType="com.linss.gshop.entity.User">
+        update user
+        set username = #{username},
+        avatar = #{avatar},
+        phone = #{phone},
+        email = #{email},
+        address = #{address}
+        where uid = #{uid}
+    </update>
+
+    <delete id="deleteUser" parameterType="int">
+        delete from user where uid = #{uid}
+    </delete>
+
+    <select id="getUserByEmail" resultType="com.linss.gshop.entity.User" parameterType="string">
+        select * from user where email = #{email}
+    </select>
+
+
+    <select id="getUserByUsername" resultType="com.linss.gshop.entity.User" parameterType="string">
+        select * from user where username = #{username}
+    </select>
+
+    <select id="countUsers" resultType="int">
+        SELECT COUNT(*) FROM user;
+    </select>
+
+    <update id="updatePassword" parameterType="map">
+        UPDATE user
+        SET password = #{password}
+        WHERE uid = #{uid}
+    </update>
+
+</mapper>

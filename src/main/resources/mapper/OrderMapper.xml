@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.linss.gshop.mapper.OrderMapper">
+    <resultMap id="OrderResultMap" type="com.linss.gshop.entity.Order">
+
+        <id property="orderId" column="order_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="paymentMethod" column="payment_method"/>
+        <result property="paymentStatus" column="payment_status"/>
+        <result property="orderStatus" column="order_status"/>
+        <result property="orderTime" column="order_time"/>
+        <result property="payTime" column="pay_time"/>
+        <result property="payNum" column="pay_num"/>
+        <result property="expireTime" column="expire_time"/>
+
+        <collection property="items" ofType="com.linss.gshop.entity.OrderItem">
+            <id property="itemId" column="item_id"/>
+            <result property="orderId" column="order_id"/>
+            <result property="gid" column="gid"/>
+            <result property="title" column="title"/>
+            <result property="quantity" column="quantity"/>
+            <result property="price" column="price"/>
+        </collection>
+
+    </resultMap>
+
+
+<!--    <select id="selectOrderBase" resultType="com.linss.gshop.entity.Order">-->
+<!--        SELECT-->
+<!--        order_id, user_id, total_amount,-->
+<!--        payment_method, payment_status,-->
+<!--        pay_time, pay_num,-->
+<!--        order_status, order_time,-->
+<!--        expire_time-->
+<!--        FROM orders-->
+<!--        ORDER BY order_time DESC-->
+<!--    </select>-->
+
+    <select id="selectOrderItemsByOrderIds" resultType="com.linss.gshop.entity.OrderItem">
+        SELECT
+        oi.order_id, oi.item_id,
+        oi.gid, oi.title,
+        oi.quantity,
+        g.title, g.price
+        FROM order_item oi
+        LEFT JOIN goods g ON oi.gid = g.gid
+        <where>
+            <if test="orderIds != null and orderIds.size > 0">
+                AND oi.order_id IN
+                <foreach item="id" collection="orderIds" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    <!-- 删除订单 -->
+    <delete id="deleteOrder">
+        DELETE FROM orders
+        WHERE order_id = #{orderId} AND order_status = 0
+    </delete>
+
+    <!-- 查询所有订单 -->
+    <select id="getAllOrder" resultType="com.linss.gshop.entity.Order">
+        SELECT
+        order_id AS orderId,
+        user_id AS userId,
+        total_amount AS totalAmount,
+        payment_method AS paymentMethod,
+        payment_status AS paymentStatus,
+        order_status AS orderStatus,
+        order_time AS orderTime,
+        pay_time AS payTime,
+        pay_num AS payNum,
+        expire_time AS expireTime
+        FROM orders
+        ORDER BY order_status DESC, order_time DESC
+    </select>
+
+    <!-- 根据订单ID查询 -->
+    <select id="getOrderById" resultMap="OrderResultMap">
+        SELECT
+        o.order_id, o.user_id,
+        oi.item_id, g.gid, g.title, g.price, oi.quantity,
+        o.total_amount, o.payment_method,
+        o.payment_status, o.pay_time,
+        o.pay_num, o.order_status,
+        o.order_time, o.expire_time
+        FROM (
+        SELECT * FROM orders WHERE order_id = #{orderId}
+        ) o
+        LEFT JOIN order_item oi ON o.order_id = oi.order_id
+        LEFT JOIN goods g ON oi.gid = g.gid
+        WHERE o.order_id = #{orderId}
+    </select>
+
+    <!-- 根据用户ID查询 -->
+    <select id="getOrderByUserId" resultMap="OrderResultMap">
+        SELECT DISTINCT
+        o.order_id, o.user_id, oi.item_id,
+        g.gid, g.title, g.price, g.stock, oi.quantity,
+        o.total_amount, o.payment_method,
+        o.payment_status, o.pay_time,
+        o.pay_num, o.order_status,
+        o.order_time, o.expire_time
+        FROM orders o
+        LEFT JOIN order_item oi ON o.order_id = oi.order_id
+        LEFT JOIN goods g ON oi.gid = g.gid
+        WHERE o.user_id = #{userId}
+    </select>
+
+    <select id="getExpiredOrders" resultType="com.linss.gshop.entity.Order">
+        SELECT * FROM orders WHERE expire_time &lt;= #{cutoffTime} AND order_status != 0;
+    </select>
+
+
+    <!-- 插入订单 -->
+    <insert id="insertOrder" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO orders (
+        order_id,
+        user_id, total_amount,
+        order_time, payment_status,
+        order_status, expire_time,
+        payment_method
+        ) VALUES (
+        #{orderId},
+        #{userId}, #{totalAmount},
+        #{orderTime}, #{paymentStatus},
+        #{orderStatus},
+        DATE_ADD(#{orderTime}, INTERVAL 24 HOUR),
+        #{paymentMethod}
+        )
+    </insert>
+
+    <!-- 插入订单项 -->
+    <insert id="insertOrderItem">
+        INSERT INTO order_item (order_id, gid, title, quantity, price)
+        VALUES (#{orderId}, #{gid}, #{title}, #{quantity}, #{price})
+    </insert>
+    <!-- 批量更新过期订单 -->
+    <update id="updateExpiredOrders">
+        UPDATE orders
+        SET order_status = 0
+        WHERE expire_time &lt;= NOW() AND order_status != 0;
+    </update>
+
+    <update id="updateOrder" parameterType="Order">
+        UPDATE orders
+        <set>
+
+
+            <if test="payNum != null">pay_num = #{payNum}</if>,
+            <if test="totalAmount != null">total_amount = #{totalAmount}</if>,
+            <if test="paymentStatus != null">payment_status = #{paymentStatus}</if>,
+            <if test="orderStatus != null">order_status = #{orderStatus}</if>,
+            <if test="payTime != null">pay_time = #{payTime}</if>
+
+        </set>
+        WHERE order_id = #{orderId}
+    </update>
+
+    <update id="updateOrderStatus">
+        UPDATE orders
+        SET order_status = #{orderStatus}
+        WHERE order_id = #{orderId}
+    </update>
+
+
+    <select id="countOrders" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM orders
+    </select>
+
+    <select id="countSale" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM orders WHERE payment_status = 1
+    </select>
+
+    <select id="countSalesAmount" resultType="java.lang.Double">
+        SELECT SUM(total_amount) FROM orders WHERE payment_status = 1
+    </select>
+
+    <select id="countGoodsSales" resultType="map">
+        SELECT
+        oi.gid, g.title, g.price,
+        SUM(oi.quantity) AS total_sales,
+        SUM(oi.quantity * oi.price) AS total_amount
+        FROM order_item oi
+        LEFT JOIN goods g ON oi.gid = g.gid
+        GROUP BY oi.gid, g.title, g.price
+    </select>
+
+    <!-- 获取热销商品排行榜 -->
+    <select id="getTopSellingProducts" resultType="map">
+        SELECT
+        oi.gid, g.title, g.price,
+        SUM(oi.quantity) AS total_sales,
+        SUM(oi.quantity * oi.price) AS total_amount
+        FROM order_item oi
+        LEFT JOIN goods g ON oi.gid = g.gid
+        GROUP BY oi.gid, g.title, g.price
+        ORDER BY total_sales DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 商品类型销售占比查询 -->
+    <select id="getCategorySalesRatio" resultType="map">
+        SELECT 
+            c.cname AS categoryName,
+            SUM(oi.quantity * g.price) AS salesAmount
+        FROM order_item oi
+        JOIN goods g ON oi.gid = g.gid
+        JOIN category c ON g.cid = c.cid
+        GROUP BY c.cname
+        ORDER BY salesAmount DESC
+    </select>
+
+    <!-- 获取销售趋势数据 -->
+    <select id="getSalesTrend" resultType="map">
+        SELECT 
+            DATE_FORMAT(o.order_time, '%Y-%m-%d') AS orderDate,
+            SUM(oi.quantity * g.price) AS totalSales
+        FROM orders o
+        JOIN order_item oi ON o.order_id = oi.order_id
+        JOIN goods g ON oi.gid = g.gid
+        GROUP BY DATE_FORMAT(o.order_time, '%Y-%m-%d')
+        ORDER BY orderDate ASC;
+    </select>
+
+</mapper>

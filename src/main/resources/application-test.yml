@@ -1,0 +1,18 @@
+# 测试环境配置
+server:
+  port: 8088
+
+# 头像上传配置
+avatar:
+  base:
+    url: http://test.example.com/avatars/
+
+# 图片上传配置
+image:
+  base:
+    url: http://test.example.com/images/
+
+# 服务基础URL配置
+service:
+  base:
+    url: http://test.example.com/

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.linss.gshop.mapper.CategoryMapper">
+
+    <resultMap id="CategoryResultMap" type="category">
+        <id property="cid" column="cid" />
+        <result property="cname" column="cname" />
+        <association property="tid" javaType="com.linss.gshop.entity.GoodsType">
+            <result property="tname" column="tname"/>
+            <result property="tid" column="tid"/>
+        </association>
+    </resultMap>
+
+
+    <select id="getAllCategory" resultType="com.linss.gshop.entity.Category">
+        SELECT cid, cname, c.tid, gt.tname
+        FROM category c
+        LEFT JOIN goods_type gt ON c.tid = gt.tid
+    </select>
+
+    <select id="getCategoryById" resultType="com.linss.gshop.entity.Category">
+        SELECT cid, cname, c.tid, gt.tname
+        FROM category c
+        LEFT JOIN goods_type gt ON c.tid = gt.tid
+        WHERE cid = #{cid}
+    </select>
+
+    <insert id="addCategory">
+        INSERT INTO category(cname, tid) VALUES(#{cname}, #{tid})
+    </insert>
+
+    <update id="updateCategory">
+        UPDATE category
+        <set>
+            <if test="cname != null">
+                cname = #{cname},
+            </if>
+            <if test="tid != null">
+                tid = #{tid},
+            </if>
+        </set>
+        WHERE cid = #{cid}
+    </update>
+
+    <delete id="deleteCategory">
+        DELETE FROM category WHERE cid = #{cid}
+    </delete>
+
+    <!-- 获取商品类型销售总量 -->
+    <select id="getCategoryCounts" resultType="map">
+        SELECT
+            gt.tname AS typeName,
+            SUM(oi.quantity) AS totalCount
+        FROM order_item oi
+        LEFT JOIN goods g ON oi.gid = g.gid
+        LEFT JOIN category c ON g.cid = c.cid
+        LEFT JOIN goods_type gt ON c.tid = gt.tid
+        GROUP BY gt.tname
+        ORDER BY totalCount DESC
+    </select>
+
+    <!--    <select id="getAllCategory" resultMap="CategoryResultMap">-->
+<!--        SELECT c.cid, c.cname, c.cid, c.tid, gt.tname-->
+<!--        FROM category c-->
+<!--        LEFT JOIN goods_type gt ON c.tid = gt.tid-->
+<!--    </select>-->
+
+<!--    <select id="getCategoryById" resultMap="CategoryResultMap">-->
+<!--        SELECT c.id, c.cname, c.cid, c.tid, gt.tname-->
+<!--        FROM category c-->
+<!--        LEFT JOIN goods_type gt ON c.tid = gt.id-->
+<!--        WHERE c.id = #{id}-->
+<!--    </select>-->
+
+<!--    <select id="getCategoryByTid" resultMap="CategoryResultMap">-->
+<!--        SELECT c.id, c.cname, c.cid, c.tid, gt.tname-->
+<!--        FROM category c-->
+<!--        LEFT JOIN goods_type gt ON c.tid = gt.id-->
+<!--        WHERE c.tid = #{tid}-->
+<!--    </select>-->
+
+<!--    <insert id="addCategory" parameterType="com.linss.gshop.entity.Category">-->
+<!--        INSERT INTO category(cname, cid, tid) VALUES(#{cname}, #{cid}, #{tid.tid})-->
+<!--    </insert>-->
+
+<!--    <update id="updateCategory" parameterType="com.linss.gshop.entity.Category">-->
+<!--        UPDATE category-->
+<!--        <set>-->
+<!--            <if test="cname != null">-->
+<!--                cname = #{cname},-->
+<!--            </if>-->
+<!--            <if test="tid != null and tid.tid != null">-->
+<!--                tid = #{tid.tid},-->
+<!--            </if>-->
+<!--        </set>-->
+<!--        WHERE id = #{id}-->
+<!--    </update>-->
+
+<!--    <delete id="deleteCategory" parameterType="int">-->
+<!--        DELETE FROM category WHERE id = #{id}-->
+<!--    </delete>-->
+
+</mapper>

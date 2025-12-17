@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.linss.gshop.mapper.GoodsTypeMapper">
+
+    <resultMap id="GoodsTypeResultMap" type="com.linss.gshop.entity.GoodsType">
+        <id property="tid" column="tid"/>
+        <result property="tname" column="tname"/>
+    </resultMap>
+
+    <select id="getAllGoodsType" resultMap="GoodsTypeResultMap">
+        SELECT tid, tname FROM goods_type
+    </select>
+
+    <select id="getGoodsTypeById" resultType="com.linss.gshop.entity.GoodsType">
+        SELECT tid, tname FROM goods_type WHERE tid = #{tid}
+    </select>
+
+    <insert id="addGoodsType">
+        INSERT INTO goods_type (tname) VALUES (#{tname})
+    </insert>
+
+    <update id="updateGoodsType">
+        UPDATE goods_type SET tname = #{tname} WHERE tid = #{tid}
+    </update>
+
+    <delete id="deleteGoodsType">
+        DELETE FROM goods_type WHERE tid = #{tid}
+    </delete>
+
+
+</mapper>

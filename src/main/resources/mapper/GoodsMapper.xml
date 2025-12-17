@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.linss.gshop.mapper.GoodsMapper">
+
+    <resultMap id="GoodsResultMap" type="com.linss.gshop.entity.Goods">
+        <id property="gid" column="gid"/>
+        <result property="title" column="title"/>
+        <result property="image" column="image"/>
+        <result property="price" column="price"/>
+        <result property="stock" column="stock"/>
+        <result property="isShelved" column="is_shelved"/>
+        <result property="details" column="details"/>
+        <result property="rating" column="rating"/>
+        <result property="createdAt" column="created_at"/>
+
+        <association property="tid" javaType="com.linss.gshop.entity.GoodsType">
+            <id property="tid" column="tid"/>
+            <result property="tname" column="tname"/>
+        </association>
+
+        <association property="cid" javaType="com.linss.gshop.entity.Category">
+            <id property="cid" column="cid"/>
+            <result property="cname" column="cname"/>
+        </association>
+    </resultMap>
+
+    <select id="getAllGoods" resultType="com.linss.gshop.entity.Goods">
+        SELECT
+        g.gid,
+        t.tid, t.tname,
+        c.cid, c.cname,
+        g.title, g.image, g.price, g.stock,
+        g.is_shelved as isShelved, g.details, g.rating,
+        g.created_at as createdAt
+        FROM goods g
+        LEFT JOIN category c ON g.cid = c.cid
+        LEFT JOIN goods_type t ON g.tid = t.tid
+        ORDER BY g.created_at DESC
+    </select>
+
+    <select id="getAllGoodsCount" resultType="int">
+        SELECT COUNT(*) FROM goods;
+    </select>
+
+    <select id="getGoodsById" resultType="com.linss.gshop.entity.Goods">
+        SELECT
+        g.gid,
+        t.tid, t.tname,
+        c.cid, c.cname,
+        g.title, g.image, g.price, g.stock,
+        g.is_shelved as isShelved, g.details, g.rating,
+        g.created_at as createdAt
+        FROM goods g
+        LEFT JOIN category c ON g.cid = c.cid
+        LEFT JOIN goods_type t ON g.tid = t.tid
+        WHERE g.gid = #{gid}
+    </select>
+
+    <select id="getGoodsByName" resultType="com.linss.gshop.entity.Goods">
+        <!--    模糊搜-->
+        SELECT
+        g.gid,
+        t.tid, t.tname,
+        c.cid, c.cname,
+        g.title, g.image, g.price, g.stock,
+        g.is_shelved as isShelved, g.details, g.rating,
+        g.created_at as createdAt
+        FROM goods g
+        LEFT JOIN category c ON g.cid = c.cid
+        LEFT JOIN goods_type t ON g.tid = t.tid
+        WHERE g.title LIKE CONCAT('%', #{name}, '%')
+        ORDER BY g.created_at DESC
+    </select>
+    <select id="getGoodsByCid" resultType="com.linss.gshop.entity.Goods">
+        SELECT
+        g.gid,
+        t.tid, t.tname,
+        c.cid, c.cname,
+        g.title, g.image, g.price, g.stock,
+        g.is_shelved as isShelved, g.details, g.rating,
+        g.created_at as createdAt
+        FROM goods g
+        LEFT JOIN category c ON g.cid = c.cid
+        LEFT JOIN goods_type t ON g.tid = t.tid
+        WHERE g.cid = #{cid}
+    </select>
+    <select id="getGoodsByTid" resultType="com.linss.gshop.entity.Goods">
+        SELECT
+        g.gid,
+        t.tid, t.tname,
+        c.cid, c.cname,
+        g.title, g.image, g.price, g.stock,
+        g.is_shelved as isShelved, g.details, g.rating,
+        g.created_at as createdAt
+        FROM goods g
+        LEFT JOIN category c ON g.cid = c.cid
+        LEFT JOIN goods_type t ON g.tid = t.tid
+        WHERE g.tid IN
+        <foreach item="tid" collection="tids" open="(" separator="," close=")">
+            #{tid}
+        </foreach>
+        ORDER BY g.created_at DESC
+    </select>
+
+    <select id="getWarningGoods" resultType="com.linss.gshop.entity.Goods">
+        <![CDATA[
+        SELECT * FROM goods WHERE stock <= 300;
+        ]]>
+    </select>
+
+    <insert id="addGoods">
+        INSERT INTO goods (
+        title,
+        tid, cid,
+        image, price, stock,
+        is_shelved, details, rating, created_at
+        )
+        VALUES (
+        #{title},
+        #{tid}, #{cid},
+        #{image}, #{price}, #{stock},
+        #{isShelved}, 
+        <![CDATA[#{details}]]>, 
+        #{rating}, NOW())
+    </insert>
+
+    <update id="updateGoods">
+        UPDATE goods
+        SET
+        title = #{title},
+        tid = #{tid},
+        cid = #{cid},
+        image = #{image},
+        price = #{price},
+        stock = #{stock},
+        is_shelved = #{isShelved},
+        details = #{details},
+        rating = #{rating}
+        WHERE gid = #{gid}
+    </update>
+
+    <update id="updateRating">
+        UPDATE goods
+        SET rating = #{rating}
+        WHERE gid = #{gid}
+    </update>
+
+    <delete id="deleteGoods">
+        DELETE FROM goods WHERE gid = #{gid}
+    </delete>
+
+    <update id="updateStock">
+        UPDATE goods
+        SET stock = #{stock}
+        WHERE gid = #{gid}
+    </update>
+
+
+</mapper>

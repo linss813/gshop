@@ -1,0 +1,116 @@
+#端口配置
+server:
+  port: 8088
+
+#配置jwt
+jwt:
+  secret: 1234567890qwertyuiopasdfghjklzxcvbnm
+  expiration: 7200000
+
+# 头像上传配置
+avatar:
+  upload:
+    dir: ./uploads/avatars/
+  base:
+    url: http://localhost:8088/avatars/
+
+# 配置 Swagger
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+      path: /swagger-ui.html
+
+image:
+  upload:
+    dir: ${user.dir}/uploads/images/  # 使用系统临时目录绝对路径
+  base:
+    url: http://localhost:8088/images/  # 前端访问的基础URL
+
+# 服务基础URL配置
+service:
+  base:
+    url: http://localhost:8088/
+
+#数据库连接和配置
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/gameshop_db?characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+  # 密码
+  security:
+    user:
+      password: 123456
+    oauth2:
+      resource server:
+        jwt:
+          issuer-uri:
+  # 日期格式
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+  # 配置Spring MVC相关设置
+  mvc:
+    # 定义静态资源路径匹配规则
+    static-path-pattern: /**
+    # 指定静态资源所在位置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  mail:
+    protocol: smtp
+    host: smtp.163.com
+    username: gz813ss@163.com
+    password: SDezdKCc9naW9nrn
+    port: 465
+    default-encoding: utf-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+          ssl:
+            enable: true
+  web:
+    resources:
+      static-locations:
+        - classpath:/static/
+        - file:${image.upload.dir}
+  devtools:
+    restart:
+      enabled: false
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 2
+        max-wait: 2000ms
+
+
+
+
+# mybatis
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.linss.gshop.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 日志
+logging:
+  level:
+    com:
+      linss:
+        gshop: debug
+
+
